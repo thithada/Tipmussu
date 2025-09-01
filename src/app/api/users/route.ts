@@ -1,4 +1,4 @@
-// Location: src/app/api/users/[username]/route.ts
+// Location: src/app/api/users/route.ts
 // API route for getting user by username (public donation page)
 
 import { NextRequest, NextResponse } from 'next/server'
