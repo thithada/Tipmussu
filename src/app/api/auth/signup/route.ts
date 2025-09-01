@@ -55,13 +55,12 @@ export async function POST(request: NextRequest) {
         name: validatedData.name,
         username: validatedData.username,
         email: validatedData.email,
-        // Note: You'll need to add password field to User model in schema.prisma
-        // password: hashedPassword,
+        password: hashedPassword, // Make sure password field exists in schema
       }
     })
     
     // Remove sensitive data from response
-    const { ...userResponse } = user
+    const { password, ...userResponse } = user
     
     return NextResponse.json(
       { 

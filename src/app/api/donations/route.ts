@@ -66,3 +66,73 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+// POST /api/donations - Create new donation
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    
+    // Validate input
+    const validatedData = donationSchema.parse(body)
+    
+    // Check if user exists
+    const user = await prisma.user.findUnique({
+      where: { id: validatedData.userId }
+    })
+    
+    if (!user) {
+      return NextResponse.json(
+        { message: 'ไม่พบผู้ใช้งาน' },
+        { status: 404 }
+      )
+    }
+    
+    // Create donation
+    const donation = await prisma.donation.create({
+      data: {
+        amount: validatedData.amount,
+        message: validatedData.message || '',
+        donorName: validatedData.donorName,
+        donorEmail: validatedData.donorEmail,
+        paymentMethod: validatedData.paymentMethod,
+        paymentStatus: 'pending',
+        userId: validatedData.userId,
+      },
+      include: {
+        user: {
+          select: {
+            username: true,
+            name: true,
+          }
+        }
+      }
+    })
+    
+    // TODO: Implement payment processing logic here
+    // - Generate QR code for PromptPay
+    // - Handle TrueMoney/LINE Pay integration
+    // - Send webhook to alert systems
+    
+    return NextResponse.json({
+      message: 'สร้างการบริจาคสำเร็จ',
+      donation
+    }, { status: 201 })
+    
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { 
+          message: 'ข้อมูลไม่ถูกต้อง',
+          errors: error.errors 
+        },
+        { status: 400 }
+      )
+    }
+    
+    console.error('Create donation error:', error)
+    return NextResponse.json(
+      { message: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' },
+      { status: 500 }
+    )
+  }
+}
